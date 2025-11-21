@@ -1,12 +1,14 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { apiRequest } from './api.js';
 
-export default function Register({ go }) {
+export default function Register() {
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const onSubmit = (e) => {
     e.preventDefault();
@@ -17,17 +19,9 @@ export default function Register({ go }) {
       return;
     }
 
-    apiRequest('/user/auth/register', 'POST', {
-      email,
-      password,
-      name,
-    })
-      .then(() => {
-        go('login');
-      })
-      .catch((err) => {
-        setError(err.message);
-      });
+    apiRequest('/user/auth/register', 'POST', { email, password, name })
+      .then(() => navigate('/login'))
+      .catch((err) => setError(err.message));
   };
 
   return (
