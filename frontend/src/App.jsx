@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { apiRequest } from './api.js';
 
+import Home from './Home.jsx';
 import Landing from './Landing.jsx';
 import Login from './Login.jsx';
 import Register from './Register.jsx';
@@ -33,11 +34,12 @@ export default function App() {
           go('landing');
         });
     } else {
-      go('landing');
+      go('home');
     }
   };
 
   const screens = {
+    home: <Home go={go} />,
     landing: <Landing go={go} />,
     login: <Login go={go} onLogin={handleLogin} />,
     register: <Register go={go} />,
