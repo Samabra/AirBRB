@@ -1,34 +1,52 @@
-import { useState } from 'react';
-import reactLogo from './assets/react.svg';
-import viteLogo from '/vite.svg';
+import { useState, useEffect } from 'react';
+import { apiRequest } from './api.js';
 
-function App() {
-  const [count, setCount] = useState(0);
-  
+import Landing from './Landing.jsx';
+import Login from './Login.jsx';
+import Register from './Register.jsx';
+
+export default function App() {
+  const [screen, setScreen] = useState('landing');
+  const [token, setToken] = useState(null);
+  const go = (screenName) => {
+    setScreen(screenName);
+  };
+  useEffect(() => {
+    const saved = localStorage.getItem('token');
+    if (saved) {
+      setToken(saved);
+      setScreen('home');
+    }
+  }, []);
+
+  const handleLogin = (newToken) => {
+    setToken(newToken);
+    localStorage.setItem('token', newToken);
+    go('home');
+  };
+  const handleLogout = () => {
+    if (token) {
+      apiRequest('/user/auth/logout', 'POST', {}, token)
+        .finally(() => {
+          localStorage.removeItem('token');
+          setToken(null);
+          go('landing');
+        });
+    } else {
+      go('landing');
+    }
+  };
+
+  const screens = {
+    landing: <Landing go={go} />,
+    login: <Login go={go} onLogin={handleLogin} />,
+    register: <Register go={go} />,
+  };
+
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank" rel="noreferrer noopener">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank" rel="noreferrer noopener">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button id="counter" onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div>
+      {token && <button onClick={handleLogout}>Logout</button>}
+      {screens[screen]}
+    </div>
+  );
 }
-
-export default App
