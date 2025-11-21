@@ -6,6 +6,8 @@ import Home from './Home.jsx';
 import Landing from './Landing.jsx';
 import Login from './Login.jsx';
 import Register from './Register.jsx';
+import HostedListings from './HostedListings.jsx';
+import CreateListing from './CreateListing.jsx';
 
 export default function App() {
   const [token, setToken] = useState(null);
@@ -50,6 +52,7 @@ export default function App() {
           path="/hosted"
           element={token ? <HostedListings token={token} email={email} /> : <Navigate to="/login" />}
         />
+        <Route path="/hosted/create" element={<CreateListing token={token} />} />
       </Routes>
     </Router>
   );
