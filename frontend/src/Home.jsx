@@ -14,6 +14,7 @@ export default function Home({ go }) {
                 <button onClick={() => go('mylistings')} style={{ marginLeft: '10px' }}>
                     View My Hosted Listings
                 </button>
+                <button onClick={() => go('hosted')}>My Hosted Listings</button>
             </div>
         </div>
     );
