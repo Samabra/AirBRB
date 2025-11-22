@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { apiRequest } from './api.js';
 
 
-export default function Landing({ go, token, email }) {
+export default function Landing ({ token, email }) {
+  const navigate = useNavigate();
+
   const [loading, setLoading] = useState(true);
   const [listings, setListings] = useState([]);
   const [error, setError] = useState('');
@@ -13,6 +16,7 @@ export default function Landing({ go, token, email }) {
   const [priceMin, setPriceMin] = useState('');
   const [priceMax, setPriceMax] = useState('');
   const [ratingOrder, setRatingOrder] = useState('none');
+  const [priorityIds, setPriorityIds] = useState(new Set());
 
   const refreshListings = () => {
     setLoading(true);
@@ -21,8 +25,6 @@ export default function Landing({ go, token, email }) {
     apiRequest('/listings', 'GET')
       .then((data) => {
         const ids = data.listings.map((l) => l.id);
-
-        // 2. GET /listings/:id for each listing
         return Promise.all(
           ids.map((id) =>
             apiRequest(`/listings/${id}`, 'GET').then((meta) => ({
@@ -35,7 +37,26 @@ export default function Landing({ go, token, email }) {
       .then((all) => {
         const onlyPublished = all.filter((l) => l.published === true);
         setListings(onlyPublished);
-        setLoading(false);
+        if (token && email) {
+          apiRequest('/bookings', 'GET', undefined, token)
+            .then((bdata) => {
+              const ids = (bdata.bookings || [])
+                .filter((b) =>
+                  b.email === email &&
+                  (b.status === 'accepted' || b.status === 'pending')
+                )
+                .map((b) => b.listingId);
+
+              setPriorityIds(new Set(ids));
+            })
+            .catch(() => {
+              setPriorityIds(new Set());
+            })
+            .finally(() => setLoading(false));
+        } else {
+          setPriorityIds(new Set());
+          setLoading(false);
+        }
       })
       .catch((err) => {
         setError(err.message);
@@ -62,6 +83,15 @@ export default function Landing({ go, token, email }) {
       return beds >= parseInt(bedMin) && beds <= parseInt(bedMax);
     });
   }
+
+  if (priceMin !== '' && priceMax !== '') {
+    const min = parseInt(priceMin);
+    const max = parseInt(priceMax);
+    filtered = filtered.filter((l) => {
+      const price = l.price || 0;
+      return price >= min && price <= max;
+    });
+  }
   if (ratingOrder !== 'none') {
     filtered.sort((a, b) => {
       const aRating = average(a.reviews);
@@ -71,6 +101,20 @@ export default function Landing({ go, token, email }) {
       return 0;
     });
   }
+  if (token && email) {
+    const priority = [];
+    const others = [];
+    filtered.forEach((l) => {
+      if (priorityIds.has(l.id)) priority.push(l);
+      else others.push(l);
+    });
+    others.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+  
+    filtered = [...priority, ...others];
+  } else {
+    filtered.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+  }
+
 
   if (loading) return <p>Loading listings...</p>;
   if (error) return <p style={{ color: 'red' }}>{error}</p>;
@@ -98,7 +142,7 @@ export default function Landing({ go, token, email }) {
   return (
     <div style={{ padding: 20 }}>
       <h1>Published Listings</h1>
-      
+
       <div style={{ marginBottom: 20 }}>
         <input
           placeholder="Search by title or city"
@@ -167,4 +211,10 @@ export default function Landing({ go, token, email }) {
       ))}
     </div> 
   );
+}
+
+function average(reviews) {
+  if (!reviews || reviews.length === 0) return 0;
+  const t = reviews.reduce((acc, r) => acc + (r.rating || 0), 0);
+  return t / reviews.length;
 }
