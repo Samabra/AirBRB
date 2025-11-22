@@ -153,7 +153,6 @@ export default function Landing ({ token, email }) {
     } else {
       content = (
         <>
-          {/* Search / Filter UI */}
           <div style={{ marginBottom: 20 }}>
             <input
               placeholder="Search by title or city"
