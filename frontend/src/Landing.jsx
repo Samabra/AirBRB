@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { apiRequest } from './api.js';
 
 
-export default function LandingPage({ go, token, email }) {
+export default function Landing({ go, token, email }) {
   const [loading, setLoading] = useState(true);
   const [listings, setListings] = useState([]);
   const [error, setError] = useState('');
@@ -62,7 +62,40 @@ export default function LandingPage({ go, token, email }) {
       return beds >= parseInt(bedMin) && beds <= parseInt(bedMax);
     });
   }
-  
+  if (ratingOrder !== 'none') {
+    filtered.sort((a, b) => {
+      const aRating = average(a.reviews);
+      const bRating = average(b.reviews);
+      if (ratingOrder === 'high') return bRating - aRating;
+      if (ratingOrder === 'low') return aRating - bRating;
+      return 0;
+    });
+  }
+
+  if (loading) return <p>Loading listings...</p>;
+  if (error) return <p style={{ color: 'red' }}>{error}</p>;
+
+  if (filtered.length === 0) {
+    return (
+      <div>
+        <h2>No listings match your filters.</h2>
+        <button onClick={refreshListings}>Reset</button>
+      </div>
+    );
+  }
+  if (loading) return <p>Loading listings...</p>;
+  if (error) return <p style={{ color: 'red' }}>{error}</p>;
+
+  if (filtered.length === 0) {
+    return (
+      <div>
+        <h2>No listings match your filters.</h2>
+        <button onClick={refreshListings}>Reset</button>
+      </div>
+    );
+  }
+
+
 
 
 }
