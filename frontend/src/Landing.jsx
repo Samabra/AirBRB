@@ -95,7 +95,76 @@ export default function Landing({ go, token, email }) {
     );
   }
 
+  return (
+    <div style={{ padding: 20 }}>
+      <h1>Published Listings</h1>
+      
+      <div style={{ marginBottom: 20 }}>
+        <input
+          placeholder="Search by title or city"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
 
+        <div>
+          <input
+            placeholder="Min beds"
+            value={bedMin}
+            onChange={(e) => setBedMin(e.target.value)}
+          />
+          <input
+            placeholder="Max beds"
+            value={bedMax}
+            onChange={(e) => setBedMax(e.target.value)}
+          />
+        </div>
 
+        <div>
+          <input
+            placeholder="Min price"
+            value={priceMin}
+            onChange={(e) => setPriceMin(e.target.value)}
+          />
+          <input
+            placeholder="Max price"
+            value={priceMax}
+            onChange={(e) => setPriceMax(e.target.value)}
+          />
+        </div>
 
+        <select onChange={(e) => setRatingOrder(e.target.value)}>
+          <option value="none">Rating: none</option>
+          <option value="high">Rating: high → low</option>
+          <option value="low">Rating: low → high</option>
+        </select>
+
+        <button onClick={refreshListings}>Search</button>
+      </div>
+
+      {filtered.map((l) => (
+        <div
+          key={l.id}
+          onClick={() => go(`listing_${l.id}`)}
+          style={{
+            border: '1px solid #ddd',
+            padding: 12,
+            marginBottom: 12,
+            cursor: 'pointer',
+          }}
+        >
+          <h2>{l.title}</h2>
+          <p>{l.address?.city}</p>
+          <p>${l.price} / night</p>
+          <p>{(l.reviews || []).length} reviews</p>
+
+          {l.thumbnail && (
+            <img
+              src={l.thumbnail}
+              style={{ width: 160, height: 100, objectFit: 'cover' }}
+            />
+          )}
+        </div>
+      ))}
+    </div> 
+  );
 }
