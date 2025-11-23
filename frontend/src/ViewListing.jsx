@@ -11,6 +11,11 @@ export default function ViewListing({ token }) {
   const [listing, setListing] = useState(null);
   const [bookings, setBookings] = useState([]);
   const [error, setError] = useState('');
+
+  const [reviewScore, setReviewScore] = useState('');
+  const [reviewComment, setReviewComment] = useState('');
+  const [reviewMessage, setReviewMessage] = useState('');
+
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [bookingMessage, setBookingMessage] = useState('');
@@ -52,9 +57,9 @@ export default function ViewListing({ token }) {
     amenities = [],
     images = [],
     propertyType = '',
-    bathrooms = '',
-    bedrooms = '',
-    beds = '',
+    bathrooms = 0,
+    bedrooms = 0,
+    beds = 0,
   } = metadata;
 
   const validReviews = reviews.filter(r => r && r.score !== undefined);
@@ -71,18 +76,20 @@ export default function ViewListing({ token }) {
     displayPrice = `\$${price * nights} total stay (${nights} nights)`;
   }
 
+  const acceptedBookings = bookings.filter(b => b.status === 'accepted');
+
   const handleBooking = () => {
-    if (!listing || !startDate || !endDate) return;
-  
+    if (!startDate || !endDate) return;
+
     const start = new Date(startDate);
     const end = new Date(endDate);
     const nights = (end - start) / (1000 * 60 * 60 * 24);
-  
+
     const bookingData = {
       dateRange: { start: startDate, end: endDate },
-      totalPrice: listing.price * nights
+      totalPrice: price * nights
     };
-  
+
     apiRequest(`/bookings/new/${listingId}`, 'POST', bookingData, token)
       .then((res) => {
         setBookingMessage(`Booking confirmed for ${nights} nights! Total: $${bookingData.totalPrice}`);
@@ -93,7 +100,35 @@ export default function ViewListing({ token }) {
       .catch((err) => {
         setBookingMessage(err.message);
       });
-  };    
+  };
+
+  const handleSubmitReview = () => {
+    if (!reviewScore || !reviewComment) return;
+    if (acceptedBookings.length === 0) {
+      setReviewMessage('You must have an accepted booking to leave a review.');
+      return;
+    }
+
+    const bookingId = acceptedBookings[0].id;
+
+    const reviewData = {
+      bookingId,
+      score: Number(reviewScore),
+      comment: reviewComment
+    };
+
+    apiRequest('/reviews', 'POST', reviewData, token)
+      .then(() => {
+        setListing({
+          ...listing,
+          reviews: [...listing.reviews, reviewData]
+        });
+        setReviewScore('');
+        setReviewComment('');
+        setReviewMessage('Review posted!');
+      })
+      .catch((err) => setReviewMessage(err.message));
+  };
 
   return (
     <div style={{ padding: '20px' }}>
@@ -106,38 +141,21 @@ export default function ViewListing({ token }) {
       <p>{displayPrice}</p>
 
       <h3>Thumbnail</h3>
-      <img
-        src={thumbnail}
-        alt="thumbnail"
-        style={{ width: '200px', borderRadius: '8px' }}
-      />
+      <img src={thumbnail} alt="thumbnail" style={{ width: '200px', borderRadius: '8px' }} />
 
       <h3>Images</h3>
-      {images.length > 0 ? (
-        images.map((img, idx) => (
-          <img
-            key={idx}
-            src={img}
-            alt="property"
-            style={{
-              width: '200px',
-              marginRight: '10px',
-              borderRadius: '8px',
-            }}
-          />
-        ))
-      ) : (
-        <p>No images</p>
-      )}
+      {images.length > 0 ? images.map((img, idx) => (
+        <img key={idx} src={img} alt="property" style={{ width: '200px', marginRight: '10px', borderRadius: '8px' }} />
+      )) : <p>No images</p>}
 
       <h3>Property Type</h3>
       <p>{propertyType || 'Not specified'}</p>
 
       <h3>Details</h3>
       <ul>
-        <li>Bedrooms: {bedrooms || 0}</li>
-        <li>Beds: {beds || 0}</li>
-        <li>Bathrooms: {bathrooms || 0}</li>
+        <li>Bedrooms: {bedrooms}</li>
+        <li>Beds: {beds}</li>
+        <li>Bathrooms: {bathrooms}</li>
       </ul>
 
       <h3>Amenities</h3>
@@ -145,60 +163,47 @@ export default function ViewListing({ token }) {
 
       <h3>Reviews</h3>
       <p>Average Rating: {avgRating}</p>
-
-      {validReviews.length > 0 ? (
-        validReviews.map((r, i) => (
-          <div key={i} style={{ marginBottom: '10px' }}>
-            ⭐ {r.score}
-            <br />
-            <i>{r.comment}</i>
-          </div>
-        ))
-      ) : (
-        <p>No reviews yet</p>
-      )}
+      {validReviews.length > 0 ? validReviews.map((r, i) => (
+        <div key={i} style={{ marginBottom: '10px' }}>
+          ⭐ {r.score}<br />
+          <i>{r.comment}</i>
+        </div>
+      )) : <p>No reviews yet</p>}
 
       {token && (
         <>
+          <h3>Make a Booking</h3>
+          <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
+          <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={{ marginLeft: '10px' }} />
+          <button onClick={handleBooking} style={{ marginLeft: '10px' }}>Book Now</button>
+          {bookingMessage && <p>{bookingMessage}</p>}
+
           <h3>Your Booking Status</h3>
-          {bookings.length === 0 ? (
-            <p>You haven't made a booking for this listing.</p>
-          ) : (
-            bookings.map((b) => (
-              <p key={b.id}>
-                Booking #{b.id}: <strong>{b.status}</strong>
-              </p>
-            ))
+          {bookings.length === 0 ? <p>You haven't made a booking for this listing.</p> : bookings.map(b => (
+            <p key={b.id}>Booking #{b.id}: <strong>{b.status}</strong></p>
+          ))}
+
+          {acceptedBookings.length > 0 && (
+            <div style={{ marginTop: '20px' }}>
+              <h3>Leave a Review</h3>
+              <input
+                type="number"
+                placeholder="Score (1-5)"
+                value={reviewScore}
+                onChange={(e) => setReviewScore(e.target.value)}
+              />
+              <br />
+              <textarea
+                placeholder="Comment"
+                value={reviewComment}
+                onChange={(e) => setReviewComment(e.target.value)}
+              />
+              <br />
+              <button onClick={handleSubmitReview}>Submit Review</button>
+              {reviewMessage && <p>{reviewMessage}</p>}
+            </div>
           )}
         </>
-      )}
-
-      {token && (
-        <div style={{ marginTop: '20px' }}>
-          <h3>Make a Booking</h3>
-          <label>
-            Start Date:{' '}
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-            />
-          </label>
-          <br />
-          <label>
-            End Date:{' '}
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-            />
-          </label>
-          <br />
-          <button onClick={handleBooking} style={{ marginTop: '10px' }}>
-            Book Now
-          </button>
-          {bookingMessage && <p style={{ color: 'green' }}>{bookingMessage}</p>}
-        </div>
       )}
     </div>
   );
