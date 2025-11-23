@@ -9,6 +9,7 @@ import Register from './Register.jsx';
 import HostedListings from './HostedListings.jsx';
 import CreateListing from './CreateListing.jsx';
 import EditListing from './EditListing.jsx';
+import ViewListing from './ViewListing.jsx';
 
 export default function App() {
   const [token, setToken] = useState(null);
@@ -55,6 +56,7 @@ export default function App() {
         />
         <Route path="/hosted/create" element={<CreateListing token={token} />} />
         <Route path="/hosted/edit/:listingId" element={<EditListing token={token} />} />
+        <Route path="/hosted/view/:listingId" element={<ViewListing token={token} />} />
       </Routes>
     </Router>
   );
