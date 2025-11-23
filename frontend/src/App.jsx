@@ -56,7 +56,7 @@ export default function App() {
         />
         <Route path="/hosted/create" element={<CreateListing token={token} />} />
         <Route path="/hosted/edit/:listingId" element={<EditListing token={token} />} />
-        <Route path="/hosted/view/:listingId" element={<ViewListing token={token} />} />
+        <Route path="/listing/:listingId" element={<ViewListing token={token} />} />
       </Routes>
     </Router>
   );

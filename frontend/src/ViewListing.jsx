@@ -11,6 +11,9 @@ export default function ViewListing({ token }) {
   const [listing, setListing] = useState(null);
   const [bookings, setBookings] = useState([]);
   const [error, setError] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [bookingMessage, setBookingMessage] = useState('');
 
   useEffect(() => {
     apiRequest(`/listings/${listingId}`, 'GET')
@@ -67,6 +70,30 @@ export default function ViewListing({ token }) {
     const nights = (end - start) / (1000 * 60 * 60 * 24);
     displayPrice = `\$${price * nights} total stay (${nights} nights)`;
   }
+
+  const handleBooking = () => {
+    if (!listing || !startDate || !endDate) return;
+  
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const nights = (end - start) / (1000 * 60 * 60 * 24);
+  
+    const bookingData = {
+      dateRange: { start: startDate, end: endDate },
+      totalPrice: listing.price * nights
+    };
+  
+    apiRequest(`/bookings/new/${listingId}`, 'POST', bookingData, token)
+      .then((res) => {
+        setBookingMessage(`Booking confirmed for ${nights} nights! Total: $${bookingData.totalPrice}`);
+        setBookings([...bookings, { ...bookingData, id: res.id, status: 'pending' }]);
+        setStartDate('');
+        setEndDate('');
+      })
+      .catch((err) => {
+        setBookingMessage(err.message);
+      });
+  };    
 
   return (
     <div style={{ padding: '20px' }}>
@@ -144,6 +171,34 @@ export default function ViewListing({ token }) {
             ))
           )}
         </>
+      )}
+
+      {token && (
+        <div style={{ marginTop: '20px' }}>
+          <h3>Make a Booking</h3>
+          <label>
+            Start Date:{' '}
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+            />
+          </label>
+          <br />
+          <label>
+            End Date:{' '}
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+            />
+          </label>
+          <br />
+          <button onClick={handleBooking} style={{ marginTop: '10px' }}>
+            Book Now
+          </button>
+          {bookingMessage && <p style={{ color: 'green' }}>{bookingMessage}</p>}
+        </div>
       )}
     </div>
   );

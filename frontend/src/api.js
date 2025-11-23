@@ -14,18 +14,16 @@ export function apiRequest(path, method = 'GET', body, token) {
       options.body = JSON.stringify(body);
     }
   
-    return fetch(`${API_BASE}${path}`, options)
-      .then((res) =>
-        res.json().then((data) => ({
-          ok: res.ok,
-          data,
-        }))
-      )
-      .then(({ ok, data }) => {
-        if (!ok) {
-          return Promise.reject(new Error(data.error || 'Request failed'));
-        }
-        return data;
-      });
+    return fetch(`${API_BASE}${path}`, { method, headers, body: body ? JSON.stringify(body) : undefined })
+  .then(async (res) => {
+    const text = await res.text();
+    try {
+      const data = JSON.parse(text);
+      if (!res.ok) return Promise.reject(new Error(data.error || 'Request failed'));
+      return data;
+    } catch {
+      return Promise.reject(new Error(`Invalid JSON response: ${text}`));
+    }
+    });
   }
   
