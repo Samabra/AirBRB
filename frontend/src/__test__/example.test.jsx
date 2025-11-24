@@ -13,7 +13,7 @@ describe("app test", () => {
     render(<App />);
     const button = screen.getByText("count is 0");
     expect(button).toBeInTheDocument();
-    await fireEvent.click(button);  // You will find await useful when you trigger events
+    await fireEvent.click(button);
     expect(button).toHaveTextContent("count is 1");
   });
 
