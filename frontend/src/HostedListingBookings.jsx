@@ -123,3 +123,48 @@ export default function HostedListingBookings({ token }) {
 
   const pending = bookings.filter((b) => b.status === 'pending');
 
+  return (
+    <div style={{ padding: 20 }}>
+      <h2>Booking Requests & History</h2>
+
+      <h3>{listing.title}</h3>
+
+      {message && <p style={{ color: 'green' }}>{message}</p>}
+      <div style={{ border: '1px solid #ddd', padding: 12, margin: '12px 0' }}>
+        <p><strong>Days online:</strong> {stats.daysOnline}</p>
+        <p><strong>Days booked this year:</strong> {stats.daysBookedThisYear}</p>
+        <p><strong>Profit this year:</strong> ${stats.profitThisYear}</p>
+      </div>
+
+      <h3>Pending Requests</h3>
+      {pending.length === 0 ? (
+        <p>No pending booking requests.</p>
+      ) : (
+        pending.map((b) => (
+          <div
+            key={b.id}
+            style={{ border: '1px solid #999', padding: 10, marginBottom: 10 }}
+          >
+            <p><strong>Guest:</strong> {b.email}</p>
+            <p><strong>Dates:</strong> {b.dateRange.start} → {b.dateRange.end}</p>
+
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={() => acceptBooking(b.id)}>Accept</button>
+              <button onClick={() => declineBooking(b.id)}>Decline</button>
+            </div>
+          </div>
+        ))
+      )}
+      <h3>History</h3>
+      {bookings.map((b) => (
+        <div key={b.id} style={{ padding: 6 }}>
+          {b.email} — {b.dateRange.start} → {b.dateRange.end} ({b.status})
+        </div>
+      ))}
+
+      <button style={{ marginTop: 16 }} onClick={() => navigate('/hosted')}>
+        Back to Hosted Listings
+      </button>
+    </div>
+  );
+}
