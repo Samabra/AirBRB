@@ -11,6 +11,7 @@ import CreateListing from './CreateListing.jsx';
 import EditListing from './EditListing.jsx';
 import ViewListing from './ViewListing.jsx';
 import HostedListingBookings from './HostedListingBookings.jsx';
+import Header from './Header.jsx';
 
 function AppRoutes({ token, email, setToken, setEmail }) {
   const location = useLocation();
@@ -32,10 +33,10 @@ function AppRoutes({ token, email, setToken, setEmail }) {
 
   return (
     <>
-      {token && <button onClick={handleLogout}>Logout</button>}
+      <Header token={token} email={email} onLogout={handleLogout} />
 
       <Routes>
-        <Route path="/" element={<Landing />} />
+        <Route path="/" element={<Landing token={token} email={email} />} />
         <Route path="/home" element={token ? <Home /> : <Navigate to="/login" />} />
         <Route path="/login" element={<Login onLogin={(t, e) => { setToken(t); setEmail(e); localStorage.setItem('token', t); localStorage.setItem('email', e); }} />} />
         <Route path="/register" element={<Register />} />
