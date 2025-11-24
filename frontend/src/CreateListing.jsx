@@ -50,13 +50,13 @@ export default function CreateListing({ token }) {
     };
     if (token) {
       apiRequest('/listings/new', 'POST', listing, token)
-      .then(() => {
-        alert('Listing created!');
-        navigate('/hosted');
-      })
-      .catch((err) => {
-        setError(err.message);
-      });
+        .then(() => {
+          alert('Listing created!');
+          navigate('/hosted');
+        })
+        .catch((err) => {
+          setError(err.message);
+        });
     }
   };
 

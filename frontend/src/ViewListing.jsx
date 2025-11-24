@@ -68,12 +68,12 @@ export default function ViewListing({ token }) {
       ? (validReviews.reduce((a, b) => a + b.score, 0) / validReviews.length).toFixed(1)
       : 'No ratings yet';
 
-  let displayPrice = `\$${price} per night`;
+  let displayPrice = `\${price} per night`;
   if (searchDates && searchDates.start && searchDates.end) {
     const start = new Date(searchDates.start);
     const end = new Date(searchDates.end);
     const nights = (end - start) / (1000 * 60 * 60 * 24);
-    displayPrice = `\$${price * nights} total stay (${nights} nights)`;
+    displayPrice = `\${price * nights} total stay (${nights} nights)`;
   }
 
   const acceptedBookings = bookings.filter(b => b.status === 'accepted');
@@ -179,7 +179,7 @@ export default function ViewListing({ token }) {
           {bookingMessage && <p>{bookingMessage}</p>}
 
           <h3>Your Booking Status</h3>
-          {bookings.length === 0 ? <p>You haven't made a booking for this listing.</p> : bookings.map(b => (
+          {bookings.length === 0 ? <p>You haven&apos;t made a booking for this listing.</p> : bookings.map(b => (
             <p key={b.id}>Booking #{b.id}: <strong>{b.status}</strong></p>
           ))}
 
