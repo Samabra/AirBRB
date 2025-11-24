@@ -1,0 +1,18 @@
+{
+    "title": "Beach House",
+    "address": {
+      "street": "1 Ocean Road",
+      "city": "Sydney",
+      "postcode": "2000",
+      "country": "Australia"
+    },
+    "price": 250,
+    "thumbnail": "",
+    "youtubeLink": "",
+    "metadata": {
+      "propertyType": "House",
+      "bathrooms": 2,
+      "bedrooms": 3,
+      "amenities": ["Wifi", "Pool", "Kitchen"]
+    }
+  }

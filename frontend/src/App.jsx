@@ -10,6 +10,7 @@ import HostedListings from './HostedListings.jsx';
 import CreateListing from './CreateListing.jsx';
 import EditListing from './EditListing.jsx';
 import ViewListing from './ViewListing.jsx';
+import HostedListingBookings from './HostedListingBookings.jsx';
 
 function AppRoutes({ token, email, setToken, setEmail }) {
   const location = useLocation();
@@ -41,6 +42,7 @@ function AppRoutes({ token, email, setToken, setEmail }) {
         <Route path="/hosted" element={token ? <HostedListings token={token} email={email} /> : <Navigate to="/login" />} />
         <Route path="/hosted/create" element={<CreateListing token={token} />} />
         <Route path="/hosted/edit/:listingId" element={<EditListing token={token} />} />
+        <Route path="/hosted/:listingId/bookings" element={token ? <HostedListingBookings token={token} /> : <Navigate to="/login" />} />
         <Route path="/listing/:listingId" element={<ViewListing token={token} />} />
       </Routes>
     </>

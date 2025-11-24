@@ -22,7 +22,81 @@ export default function CreateListing({ token }) {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
 
+  const [jsonFileError, setJsonFileError] = useState('');
+
   const navigate = useNavigate();
+
+  const validateListingJSON = (obj) => {
+    if (!obj || typeof obj !== 'object') return 'JSON is not an object';
+
+    if (typeof obj.title !== 'string' || obj.title.trim() === '')
+      return 'Missing/invalid title';
+
+    if (!obj.address || typeof obj.address !== 'object')
+      return 'Missing address object';
+
+    const addrFields = ['street', 'city', 'postcode', 'country'];
+    for (const f of addrFields) {
+      if (typeof obj.address[f] !== 'string') return `Address.${f} missing/invalid`;
+    }
+
+    if (typeof obj.price !== 'number' || obj.price < 0)
+      return 'Missing/invalid price';
+
+    if (!obj.metadata || typeof obj.metadata !== 'object')
+      return 'Missing metadata object';
+
+    if (typeof obj.metadata.propertyType !== 'string')
+      return 'Missing/invalid metadata.propertyType';
+
+    if (typeof obj.metadata.bathrooms !== 'number')
+      return 'Missing/invalid metadata.bathrooms';
+
+    if (typeof obj.metadata.bedrooms !== 'number')
+      return 'Missing/invalid metadata.bedrooms';
+
+    if (!Array.isArray(obj.metadata.amenities))
+      return 'metadata.amenities must be an array';
+
+    return null;
+  };
+
+  const handleJsonUpload = (file) => {
+    setJsonFileError('');
+    setMessage('');
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const parsed = JSON.parse(e.target.result);
+        const err = validateListingJSON(parsed);
+        if (err) {
+          setJsonFileError(err);
+          return;
+        }
+        setTitle(parsed.title);
+        setStreet(parsed.address.street);
+        setCity(parsed.address.city);
+        setPostcode(parsed.address.postcode);
+        setCountry(parsed.address.country);
+        setPrice(String(parsed.price));
+
+        setThumbnail(parsed.thumbnail || '');
+        setYoutubeLink(parsed.youtubeLink || '');
+
+        setPropertyType(parsed.metadata.propertyType);
+        setBathrooms(String(parsed.metadata.bathrooms));
+        setBedrooms(String(parsed.metadata.bedrooms));
+        setAmenities((parsed.metadata.amenities || []).join(', '));
+
+        setMessage('JSON loaded into form successfully!');
+      } catch {
+        setJsonFileError('Invalid JSON file.');
+      }
+    };
+    reader.readAsText(file);
+  };
 
   const onSubmit = (e) => {
     e.preventDefault();
@@ -71,9 +145,20 @@ export default function CreateListing({ token }) {
       <h2>Create New Listing</h2>
 
       {error && <p style={{ color: 'red' }}>{error}</p>}
+      {jsonFileError && <p style={{ color: 'red' }}>{jsonFileError}</p>}
       {message && <p style={{ color: 'green' }}>{message}</p>}
 
       <form onSubmit={onSubmit}>
+
+        <h3>Upload listing JSON (Advanced)</h3>
+        <input
+          type="file"
+          accept=".json"
+          onChange={(e) => handleJsonUpload(e.target.files[0])}
+        />
+
+        <hr style={{ margin: '16px 0' }} />
+
         <input
           placeholder="Listing Title"
           value={title}
