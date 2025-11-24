@@ -61,7 +61,6 @@ export default function CreateListing({ token }) {
     apiRequest('/listings/new', 'POST', listing, token)
       .then(() => {
         setMessage('Listing created successfully!');
-        // auto-navigate after 0.6s (optional)
         setTimeout(() => navigate('/hosted'), 600);
       })
       .catch((err) => setError(err.message));
