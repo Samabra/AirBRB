@@ -12,6 +12,9 @@ export default function HostedListings({ token }) {
   const [publishingId, setPublishingId] = useState(null);
   const [availabilityInput, setAvailabilityInput] = useState('');
 
+  const [openBookingPanel, setOpenBookingPanel] = useState(null);
+  const [bookingRequests, setBookingRequests] = useState([]);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -79,6 +82,32 @@ export default function HostedListings({ token }) {
       });
   };
 
+  const loadBookingsForListing = (id) => {
+    setError('');
+    setMessage('');
+  
+    apiRequest('/bookings', 'GET', undefined, token)
+      .then(data => {
+        const filtered = (data.bookings || []).filter(b => b.listingId === id);
+        setBookingRequests(filtered);
+        setOpenBookingPanel(id);
+      })
+      .catch(err => setError(err.message));
+  };
+
+  const updateBookingStatus = (bookingId, status) => {
+    setError('');
+    setMessage('');
+  
+    apiRequest(`/bookings/${bookingId}`, 'PUT', { status }, token)
+      .then(() => {
+        setBookingRequests(prev =>
+          prev.map(b => b.id === bookingId ? { ...b, status } : b)
+        );
+        setMessage(`Booking ${status}.`);
+      })
+      .catch(err => setError(err.message));
+  };
   return (
     <div style={{ padding: 20 }}>
       <h2>My Hosted Listings</h2>
@@ -147,6 +176,9 @@ export default function HostedListings({ token }) {
                     Go Live
                   </button>
                 )}
+                <button onClick={() => navigate(`/hosted/${listing.id}/bookings`)}>
+                  View Booking Requests
+                </button>
               </div>
               {confirmDeleteId === listing.id && (
                 <div style={{ border: '1px solid red', padding: 10, marginTop: 10 }}>
