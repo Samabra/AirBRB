@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { apiRequest } from './api.js';
 import { useNavigate } from 'react-router-dom';
+import { Box, Typography, Button, Card, CardContent, CardMedia, Grid } from '@mui/material';
 
 export default function HostedListings({ token }) {
   const [listings, setListings] = useState([]);
@@ -19,7 +20,6 @@ export default function HostedListings({ token }) {
 
   const handleDelete = (id) => {
     if (!token) return;
-
     if (!window.confirm('Are you sure you want to delete this listing?')) return;
 
     apiRequest(`/listings/${id}`, 'DELETE', null, token)
@@ -33,71 +33,116 @@ export default function HostedListings({ token }) {
     const input = prompt(
       'Enter availability ranges (format: YYYY-MM-DD:YYYY-MM-DD, separate multiple ranges with comma):'
     );
-  
     if (!input) return;
-  
+
     const availability = input.split(',').map((range) => {
       const [start, end] = range.split(':').map(s => s.trim());
       return { start, end };
     });
-  
+
     apiRequest(`/listings/publish/${id}`, 'PUT', { availability }, token)
-      .then(() => {
-        alert('Listing is now live!');
-      })
-      .catch((err) => {
-        alert('Failed to publish: ' + err.message);
-      });
+      .then(() => alert('Listing is now live!'))
+      .catch((err) => alert('Failed to publish: ' + err.message));
   };
-  
 
   return (
-    <div>
-      <h2>My Hosted Listings</h2>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+    <Box sx={{ maxWidth: 1200, mx: 'auto', mt: 6, px: 2 }}>
+      <Typography variant="h4" align="center" gutterBottom>
+        My Hosted Listings
+      </Typography>
 
-      <button onClick={() => navigate('/hosted/create')}>Create New Listing</button>
+      {error && (
+        <Typography color="error" sx={{ mb: 2 }}>
+          {error}
+        </Typography>
+      )}
+
+      <Box sx={{ textAlign: 'center', mb: 4 }}>
+        <Button variant="contained" color="primary" onClick={() => navigate('/hosted/create')}>
+          Create New Listing
+        </Button>
+      </Box>
 
       {listings.length === 0 ? (
-        <p>You have no hosted listings.</p>
+        <Typography align="center">You have no hosted listings.</Typography>
       ) : (
-        <div className="listings-container">
-          {listings.map((listing) => (
-            <div key={listing.id} className="listing-card" style={{ border: "1px solid black" }}>
-              <h3>{listing.title}</h3>
+        <Grid container spacing={3}>
+          {listings.map((listing) => {
+            const isYouTube = listing.thumbnail?.includes('youtube.com');
+            const thumbnailSrc = isYouTube
+              ? `https://www.youtube.com/embed/${new URL(listing.thumbnail).searchParams.get('v')}`
+              : listing.thumbnail || 'default_house.jpg';
 
-              {listing.thumbnail?.includes('youtube.com') ? (
-                <iframe
-                  width="250"
-                  height="140"
-                  src={`https://www.youtube.com/embed/${new URL(listing.thumbnail).searchParams.get('v')}`}
-                  title={listing.title}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                ></iframe>
-              ) : (
-                <img
-                  src={listing.thumbnail || 'default_house.jpg'}
-                  alt={listing.title}
-                  width={250}
-                  height={140}
-                />
-              )}
+            return (
+              <Grid item xs={12} sm={6} md={4} key={listing.id}>
+                <Card sx={{ height: '100%' }}>
+                  {isYouTube ? (
+                    <Box sx={{ position: 'relative', pt: '56.25%' }}>
+                      <iframe
+                        src={thumbnailSrc}
+                        title={listing.title}
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: '100%',
+                          height: '100%',
+                        }}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    </Box>
+                  ) : (
+                    <CardMedia
+                      component="img"
+                      height="140"
+                      image={thumbnailSrc}
+                      alt={listing.title}
+                    />
+                  )}
 
-              <p>Type: {listing.metadata?.propertyType || 'N/A'}</p>
-              <p>Bedrooms: {listing.metadata?.bedrooms || 'N/A'}</p>
-              <p>Bathrooms: {listing.metadata?.bathrooms || 'N/A'}</p>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      {listing.title}
+                    </Typography>
+                    <Typography>Type: {listing.metadata?.propertyType || 'N/A'}</Typography>
+                    <Typography>Bedrooms: {listing.metadata?.bedrooms || 'N/A'}</Typography>
+                    <Typography>Bathrooms: {listing.metadata?.bathrooms || 'N/A'}</Typography>
+                    <Typography>Total Reviews: {listing.reviews?.length || 0}</Typography>
+                    <Typography>Price: ${listing.price} / night</Typography>
 
-              <p>Total Reviews: {listing.reviews?.length || 0}</p>
-              <p>Price: ${listing.price} / night</p>
-
-              <button onClick={() => navigate(`/hosted/edit/${listing.id}`)}>Edit</button>
-              <button onClick={() => handleDelete(listing.id)}>Delete</button>
-              <button onClick={() => handlePublish(listing.id)}>Go Live</button>
-            </div>
-          ))}
-        </div>
+                    <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={() => navigate(`/hosted/edit/${listing.id}`)}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        color="error"
+                        onClick={() => handleDelete(listing.id)}
+                      >
+                        Delete
+                      </Button>
+                      <Button
+                        size="small"
+                        variant="contained"
+                        color="success"
+                        onClick={() => handlePublish(listing.id)}
+                      >
+                        Go Live
+                      </Button>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            );
+          })}
+        </Grid>
       )}
-    </div>
+    </Box>
   );
 }
