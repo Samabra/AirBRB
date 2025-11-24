@@ -6,7 +6,6 @@ import {
   Typography,
   Card,
   CardMedia,
-  CardContent,
   Grid,
   TextField,
   Button,
@@ -65,7 +64,6 @@ export default function ViewListing({ token }) {
 
   const {
     amenities = [],
-    images = [],
     propertyType = '',
     bathrooms = 0,
     bedrooms = 0,

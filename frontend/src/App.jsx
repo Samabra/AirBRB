@@ -22,7 +22,7 @@ function AppRoutes({ token, email, setToken, setEmail }) {
         localStorage.removeItem('email');
         setToken(null);
 
-        if (location.pathname.startsWith("/listing/")) {
+        if (location.pathname.startsWith("/listing/") || location.pathname.startsWith("/hosted/create")) {
           navigate("/login");
         }
       });
