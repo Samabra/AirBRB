@@ -1,6 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
-import { apiRequest } from './api.js';
+import { apiRequest } from './api';
+import {
+  Box,
+  Typography,
+  Card,
+  CardMedia,
+  CardContent,
+  Grid,
+  TextField,
+  Button,
+  Paper,
+  Divider
+} from '@mui/material';
 
 export default function ViewListing({ token }) {
   const { listingId } = useParams();
@@ -22,9 +34,7 @@ export default function ViewListing({ token }) {
 
   useEffect(() => {
     apiRequest(`/listings/${listingId}`, 'GET')
-      .then((data) => {
-        setListing(data.listing);
-      })
+      .then((data) => setListing(data.listing))
       .catch((err) => setError(err.message));
 
     if (token) {
@@ -39,8 +49,8 @@ export default function ViewListing({ token }) {
     }
   }, [listingId, token]);
 
-  if (error) return <p style={{ color: 'red' }}>{error}</p>;
-  if (!listing) return <p>Loading listing…</p>;
+  if (error) return <Typography color="error">{error}</Typography>;
+  if (!listing) return <Typography>Loading listing…</Typography>;
 
   const {
     title = '',
@@ -68,12 +78,12 @@ export default function ViewListing({ token }) {
       ? (validReviews.reduce((a, b) => a + b.score, 0) / validReviews.length).toFixed(1)
       : 'No ratings yet';
 
-  let displayPrice = `\${price} per night`;
-  if (searchDates && searchDates.start && searchDates.end) {
+  let displayPrice = `$${price} per night`;
+  if (searchDates?.start && searchDates?.end) {
     const start = new Date(searchDates.start);
     const end = new Date(searchDates.end);
     const nights = (end - start) / (1000 * 60 * 60 * 24);
-    displayPrice = `\${price * nights} total stay (${nights} nights)`;
+    displayPrice = `$${price * nights} total stay (${nights} nights)`;
   }
 
   const acceptedBookings = bookings.filter(b => b.status === 'accepted');
@@ -97,9 +107,7 @@ export default function ViewListing({ token }) {
         setStartDate('');
         setEndDate('');
       })
-      .catch((err) => {
-        setBookingMessage(err.message);
-      });
+      .catch((err) => setBookingMessage(err.message));
   };
 
   const handleSubmitReview = () => {
@@ -131,80 +139,100 @@ export default function ViewListing({ token }) {
   };
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h1>{title}</h1>
+    <Box sx={{ p: 3 }}>
+      <Typography variant="h3" gutterBottom>{title}</Typography>
 
-      <h3>Address</h3>
-      <p>{addressString}</p>
+      <Paper sx={{ p: 2, mb: 3 }}>
+        <Typography variant="h6">Address</Typography>
+        <Typography>{addressString}</Typography>
 
-      <h3>Price</h3>
-      <p>{displayPrice}</p>
+        <Typography variant="h6" sx={{ mt: 2 }}>Price</Typography>
+        <Typography>{displayPrice}</Typography>
+      </Paper>
 
-      <h3>Thumbnail</h3>
-      <img src={thumbnail} alt="thumbnail" style={{ width: '200px', borderRadius: '8px' }} />
+      <Grid container spacing={2} mb={3}>
+        <Grid item xs={12} md={4}>
+          <Card>
+            <CardMedia
+              component="img"
+              height="200"
+              image={thumbnail}
+              alt={title}
+            />
+          </Card>
+        </Grid>
+        <Grid item xs={12} md={8}>
+          <Typography variant="h6">Property Type</Typography>
+          <Typography>{propertyType || 'Not specified'}</Typography>
 
-      <h3>Images</h3>
-      {images.length > 0 ? images.map((img, idx) => (
-        <img key={idx} src={img} alt="property" style={{ width: '200px', marginRight: '10px', borderRadius: '8px' }} />
-      )) : <p>No images</p>}
+          <Typography variant="h6" sx={{ mt: 2 }}>Details</Typography>
+          <Typography>Bedrooms: {bedrooms}</Typography>
+          <Typography>Beds: {beds}</Typography>
+          <Typography>Bathrooms: {bathrooms}</Typography>
 
-      <h3>Property Type</h3>
-      <p>{propertyType || 'Not specified'}</p>
+          <Typography variant="h6" sx={{ mt: 2 }}>Amenities</Typography>
+          <Typography>{amenities.length ? amenities.join(', ') : 'None'}</Typography>
+        </Grid>
+      </Grid>
 
-      <h3>Details</h3>
-      <ul>
-        <li>Bedrooms: {bedrooms}</li>
-        <li>Beds: {beds}</li>
-        <li>Bathrooms: {bathrooms}</li>
-      </ul>
+      <Divider sx={{ mb: 2 }} />
 
-      <h3>Amenities</h3>
-      <p>{amenities.length > 0 ? amenities.join(', ') : 'None'}</p>
-
-      <h3>Reviews</h3>
-      <p>Average Rating: {avgRating}</p>
-      {validReviews.length > 0 ? validReviews.map((r, i) => (
-        <div key={i} style={{ marginBottom: '10px' }}>
-          ⭐ {r.score}<br />
-          <i>{r.comment}</i>
-        </div>
-      )) : <p>No reviews yet</p>}
+      <Typography variant="h5" gutterBottom>Reviews (Avg: {avgRating})</Typography>
+      {validReviews.length ? validReviews.map((r, i) => (
+        <Paper key={i} sx={{ p: 2, mb: 1 }}>
+          <Typography>⭐ {r.score}</Typography>
+          <Typography fontStyle="italic">{r.comment}</Typography>
+        </Paper>
+      )) : <Typography>No reviews yet</Typography>}
 
       {token && (
-        <>
-          <h3>Make a Booking</h3>
-          <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
-          <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={{ marginLeft: '10px' }} />
-          <button onClick={handleBooking} style={{ marginLeft: '10px' }}>Book Now</button>
-          {bookingMessage && <p>{bookingMessage}</p>}
-
-          <h3>Your Booking Status</h3>
-          {bookings.length === 0 ? <p>You haven&apos;t made a booking for this listing.</p> : bookings.map(b => (
-            <p key={b.id}>Booking #{b.id}: <strong>{b.status}</strong></p>
-          ))}
+        <Box sx={{ mt: 3 }}>
+          <Paper sx={{ p: 2, mb: 3 }}>
+            <Typography variant="h6" gutterBottom>Make a Booking</Typography>
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 1 }}>
+              <TextField
+                label="Start Date"
+                type="date"
+                value={startDate}
+                onChange={e => setStartDate(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+              />
+              <TextField
+                label="End Date"
+                type="date"
+                value={endDate}
+                onChange={e => setEndDate(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+              />
+              <Button variant="contained" onClick={handleBooking}>Book Now</Button>
+            </Box>
+            {bookingMessage && <Typography color="primary">{bookingMessage}</Typography>}
+          </Paper>
 
           {acceptedBookings.length > 0 && (
-            <div style={{ marginTop: '20px' }}>
-              <h3>Leave a Review</h3>
-              <input
-                type="number"
-                placeholder="Score (1-5)"
-                value={reviewScore}
-                onChange={(e) => setReviewScore(e.target.value)}
-              />
-              <br />
-              <textarea
-                placeholder="Comment"
-                value={reviewComment}
-                onChange={(e) => setReviewComment(e.target.value)}
-              />
-              <br />
-              <button onClick={handleSubmitReview}>Submit Review</button>
-              {reviewMessage && <p>{reviewMessage}</p>}
-            </div>
+            <Paper sx={{ p: 2 }}>
+              <Typography variant="h6" gutterBottom>Leave a Review</Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <TextField
+                  label="Score (1-5)"
+                  type="number"
+                  value={reviewScore}
+                  onChange={e => setReviewScore(e.target.value)}
+                />
+                <TextField
+                  label="Comment"
+                  multiline
+                  minRows={3}
+                  value={reviewComment}
+                  onChange={e => setReviewComment(e.target.value)}
+                />
+                <Button variant="contained" onClick={handleSubmitReview}>Submit Review</Button>
+                {reviewMessage && <Typography color="primary">{reviewMessage}</Typography>}
+              </Box>
+            </Paper>
           )}
-        </>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 }
