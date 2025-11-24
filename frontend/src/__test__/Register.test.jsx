@@ -1,31 +1,63 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import Register from '../Register.jsx';
 import { MemoryRouter } from 'react-router-dom';
-import { apiRequest } from '../api.js';
+import { vi } from 'vitest';
+import * as api from '../api.js';
 
-jest.mock('../api.js', () => ({
-  apiRequest: jest.fn()
+vi.mock('../api.js', () => ({
+  apiRequest: vi.fn()
 }));
 
-test('navigates to /login after successful registration', async () => {
-  apiRequest.mockResolvedValueOnce({});
+describe('Register Component', () => {
+  test('renders input fields', () => {
+    render(
+      <MemoryRouter>
+        <Register />
+      </MemoryRouter>
+    );
 
-  render(
-    <MemoryRouter>
-      <Register />
-    </MemoryRouter>
-  );
+    expect(screen.getByPlaceholderText('Email')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Name')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Password')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Confirm Password')).toBeInTheDocument();
+  });
 
-  fireEvent.change(screen.getByPlaceholderText('Email'), { target: { value: 'test@test.com' } });
-  fireEvent.change(screen.getByPlaceholderText('Name'), { target: { value: 'Test User' } });
-  fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: 'password' } });
-  fireEvent.change(screen.getByPlaceholderText('Confirm Password'), { target: { value: 'password' } });
+  test('shows error when passwords do not match', () => {
+    render(
+      <MemoryRouter>
+        <Register />
+      </MemoryRouter>
+    );
 
-  fireEvent.submit(screen.getByRole('form'));
+    fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: '1234' } });
+    fireEvent.change(screen.getByPlaceholderText('Confirm Password'), { target: { value: 'abcd' } });
+    fireEvent.click(screen.getByText('Create account'));
 
-  expect(apiRequest).toHaveBeenCalledWith(
-    '/user/auth/register',
-    'POST',
-    { email: 'test@test.com', password: 'password', name: 'Test User' }
-  );
+    expect(screen.getByText(/Passwords don't match/i)).toBeInTheDocument();
+  });
+
+  test('calls apiRequest on successful registration', async () => {
+    api.apiRequest.mockResolvedValueOnce({});
+
+    render(
+      <MemoryRouter>
+        <Register />
+      </MemoryRouter>
+    );
+
+    fireEvent.change(screen.getByPlaceholderText('Email'), { target: { value: 'test@example.com' } });
+    fireEvent.change(screen.getByPlaceholderText('Name'), { target: { value: 'Test User' } });
+    fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: '1234' } });
+    fireEvent.change(screen.getByPlaceholderText('Confirm Password'), { target: { value: '1234' } });
+
+    fireEvent.click(screen.getByText('Create account'));
+
+    await waitFor(() => {
+      expect(api.apiRequest).toHaveBeenCalledWith(
+        '/user/auth/register',
+        'POST',
+        { email: 'test@example.com', password: '1234', name: 'Test User' }
+      );
+    });
+  });
 });

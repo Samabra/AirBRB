@@ -2,14 +2,20 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import HostedListings from '../HostedListings';
 import { BrowserRouter } from 'react-router-dom';
 import { apiRequest } from '../api';
+import { vi } from 'vitest';
 
-jest.mock('../api');
-
-const mockNavigate = jest.fn();
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useNavigate: () => mockNavigate,
+vi.mock('../api', () => ({
+  apiRequest: vi.fn()
 }));
+
+const mockNavigate = vi.fn();
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate
+  };
+});
 
 describe('HostedListings Component', () => {
   test('loads and displays listings', async () => {
@@ -45,7 +51,7 @@ describe('HostedListings Component', () => {
 
     apiRequest.mockResolvedValueOnce({});
 
-    global.confirm = jest.fn(() => true);
+    global.confirm = vi.fn(() => true);
 
     render(
       <BrowserRouter>
