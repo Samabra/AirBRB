@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { apiRequest } from './api.js';
 import { useNavigate } from 'react-router-dom';
+import ListingProfitsGraph from './ListingProfitsGraph.jsx';
 
 export default function HostedListings({ token }) {
   const [listings, setListings] = useState([]);
@@ -11,10 +12,6 @@ export default function HostedListings({ token }) {
 
   const [publishingId, setPublishingId] = useState(null);
   const [availabilityInput, setAvailabilityInput] = useState('');
-
-  const [openBookingPanel, setOpenBookingPanel] = useState(null);
-  const [bookingRequests, setBookingRequests] = useState([]);
-
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -81,35 +78,9 @@ export default function HostedListings({ token }) {
         return { start, end };
       });
   };
-
-  const loadBookingsForListing = (id) => {
-    setError('');
-    setMessage('');
-  
-    apiRequest('/bookings', 'GET', undefined, token)
-      .then(data => {
-        const filtered = (data.bookings || []).filter(b => b.listingId === id);
-        setBookingRequests(filtered);
-        setOpenBookingPanel(id);
-      })
-      .catch(err => setError(err.message));
-  };
-
-  const updateBookingStatus = (bookingId, status) => {
-    setError('');
-    setMessage('');
-  
-    apiRequest(`/bookings/${bookingId}`, 'PUT', { status }, token)
-      .then(() => {
-        setBookingRequests(prev =>
-          prev.map(b => b.id === bookingId ? { ...b, status } : b)
-        );
-        setMessage(`Booking ${status}.`);
-      })
-      .catch(err => setError(err.message));
-  };
   return (
     <div style={{ padding: 20 }}>
+      <ListingProfitsGraph token={token} email={localStorage.getItem("email")} />
       <h2>My Hosted Listings</h2>
       {error && <p style={{ color: 'red' }}>{error}</p>}
       {message && <p style={{ color: 'green' }}>{message}</p>}

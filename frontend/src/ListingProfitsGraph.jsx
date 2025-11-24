@@ -81,3 +81,23 @@ export default function ListingProfitsGraph({ token, email }) {
   if (loading) return <p>Loading profit graph...</p>;
   if (error) return <p style={{ color: "red" }}>{error}</p>;
 
+  return (
+    <div style={{ marginTop: 20 }}>
+      <h3>Profit (last 30 days)</h3>
+      <div style={{ width: "100%", height: 260 }}>
+        <ResponsiveContainer>
+          <LineChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="dayAgo" />
+            <YAxis />
+            <Tooltip />
+            <Line type="monotone" dataKey="profit" strokeWidth={2} dot={false} />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+      <p style={{ fontSize: 12, color: "#666" }}>
+        X = days ago (0 = today), Y = total dollars earned that day.
+      </p>
+    </div>
+  );
+}
