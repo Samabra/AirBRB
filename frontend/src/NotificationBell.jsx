@@ -76,6 +76,7 @@ export default function NotificationBell({ token, email }) {
               });
               knownBookingIds.add(id);
             }
+
             if (guestEmail === email) {
               const prevStatus = bookingStatusById.get(id);
               if (prevStatus && prevStatus !== status) {
@@ -101,12 +102,12 @@ export default function NotificationBell({ token, email }) {
           setError(err.message);
         });
     };
+
     loadOwnedListingsOnce()
-      .then(() => {
-        return apiRequest("/bookings", "GET", null, token);
-      })
+      .then(() => apiRequest("/bookings", "GET", null, token))
       .then((bData) => {
         if (!alive) return;
+
         const bookings = bData.bookings || [];
         const snap = prevSnapshotRef.current;
 
@@ -156,18 +157,47 @@ export default function NotificationBell({ token, email }) {
 
   return (
     <div className={styles.wrapper}>
-      <button className={styles.bellButton} onClick={toggleOpen} aria-label="Notifications">
+      <button
+        className={styles.bellButton}
+        onClick={toggleOpen}
+        aria-label="Notifications"
+      >
         🔔
         {unreadCount > 0 && <span className={styles.badge}>{unreadCount}</span>}
       </button>
 
       {open && (
-        <div className={styles.panel}>
+        <div
+          className={styles.panel}
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className={styles.panelHeader}>
             <strong>Notifications</strong>
-            <button className={styles.clearBtn} onClick={() => setNotifs([])}>
-              Clear
-            </button>
+
+            <div style={{ display: "flex", gap: "8px" }}>
+              {/* CLEAR button */}
+              <button
+                className={styles.clearBtn}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setNotifs([]);
+                  markAllSeen();
+                }}
+              >
+                Clear
+              </button>
+
+              {/* CLOSE button */}
+              <button
+                className={styles.clearBtn}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setOpen(false);
+                }}
+              >
+                Close
+              </button>
+            </div>
           </div>
 
           {error && <div className={styles.error}>{error}</div>}
