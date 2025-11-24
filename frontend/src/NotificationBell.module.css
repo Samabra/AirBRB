@@ -1,0 +1,102 @@
+.wrapper {
+    position: relative;
+    display: inline-block;
+  }
+  
+  .bellButton {
+    position: relative;
+    font-size: 18px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    background: white;
+    cursor: pointer;
+  }
+  
+  .badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: #e53935;
+    color: white;
+    font-size: 11px;
+    display: grid;
+    place-items: center;
+    font-weight: 600;
+  }
+  
+  .panel {
+    position: absolute;
+    right: 0;
+    top: 40px;
+    width: 280px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    padding: 10px;
+    z-index: 20;
+  }
+  
+  .panelHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  
+  .clearBtn {
+    font-size: 12px;
+    padding: 4px 6px;
+    border: 1px solid #eee;
+    background: #fafafa;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  
+  .list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 8px;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  
+  .item {
+    border: 1px solid #f0f0f0;
+    border-radius: 8px;
+    padding: 8px;
+    font-size: 14px;
+    background: #fff;
+  }
+  
+  .itemType {
+    font-size: 11px;
+    font-weight: 700;
+    color: #555;
+    margin-bottom: 2px;
+  }
+  
+  .time {
+    font-size: 11px;
+    color: #888;
+    margin-top: 4px;
+  }
+  
+  .error {
+    color: #c62828;
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
+  
+  .empty {
+    font-size: 13px;
+    color: #777;
+    padding: 8px 0;
+  }
