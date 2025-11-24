@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 export default function CreateListing({ token }) {
   const [title, setTitle] = useState('');
-  
+
   const [street, setStreet] = useState('');
   const [city, setCity] = useState('');
   const [postcode, setPostcode] = useState('');
@@ -18,15 +18,19 @@ export default function CreateListing({ token }) {
   const [price, setPrice] = useState('');
   const [thumbnail, setThumbnail] = useState('');
   const [youtubeLink, setYoutubeLink] = useState('');
+
   const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
 
   const navigate = useNavigate();
 
   const onSubmit = (e) => {
     e.preventDefault();
     setError('');
+    setMessage('');
 
-    const finalThumbnail = thumbnail.trim() !== '' ? thumbnail.trim() : youtubeLink.trim();
+    const finalThumbnail =
+      thumbnail.trim() !== '' ? thumbnail.trim() : youtubeLink.trim();
 
     const listing = {
       title,
@@ -34,39 +38,43 @@ export default function CreateListing({ token }) {
         street,
         city,
         postcode,
-        country
+        country,
       },
       price: Number(price),
       thumbnail: finalThumbnail,
       metadata: {
         propertyType,
         bathrooms: Number(bathrooms),
-        bedrooms: Number(bedrooms), 
+        bedrooms: Number(bedrooms),
         amenities: amenities
           .split(',')
           .map((a) => a.trim())
-          .filter(a => a.length > 0)
-      }
+          .filter((a) => a.length > 0),
+      },
     };
-    if (token) {
-      apiRequest('/listings/new', 'POST', listing, token)
-      .then(() => {
-        alert('Listing created!');
-        navigate('/hosted');
-      })
-      .catch((err) => {
-        setError(err.message);
-      });
+
+    if (!token) {
+      setError('You must be logged in to create a listing.');
+      return;
     }
+
+    apiRequest('/listings/new', 'POST', listing, token)
+      .then(() => {
+        setMessage('Listing created successfully!');
+        // auto-navigate after 0.6s (optional)
+        setTimeout(() => navigate('/hosted'), 600);
+      })
+      .catch((err) => setError(err.message));
   };
 
   return (
-    <div>
+    <div style={{ padding: 20 }}>
       <h2>Create New Listing</h2>
+
       {error && <p style={{ color: 'red' }}>{error}</p>}
+      {message && <p style={{ color: 'green' }}>{message}</p>}
 
       <form onSubmit={onSubmit}>
-
         <input
           placeholder="Listing Title"
           value={title}
@@ -74,10 +82,26 @@ export default function CreateListing({ token }) {
         />
 
         <h3>Address</h3>
-        <input placeholder="Street" value={street} onChange={(e) => setStreet(e.target.value)} />
-        <input placeholder="City" value={city} onChange={(e) => setCity(e.target.value)} />
-        <input placeholder="Postcode" value={postcode} onChange={(e) => setPostcode(e.target.value)} />
-        <input placeholder="Country" value={country} onChange={(e) => setCountry(e.target.value)} />
+        <input
+          placeholder="Street"
+          value={street}
+          onChange={(e) => setStreet(e.target.value)}
+        />
+        <input
+          placeholder="City"
+          value={city}
+          onChange={(e) => setCity(e.target.value)}
+        />
+        <input
+          placeholder="Postcode"
+          value={postcode}
+          onChange={(e) => setPostcode(e.target.value)}
+        />
+        <input
+          placeholder="Country"
+          value={country}
+          onChange={(e) => setCountry(e.target.value)}
+        />
 
         <input
           placeholder="Price Per Night"
@@ -104,12 +128,14 @@ export default function CreateListing({ token }) {
           value={propertyType}
           onChange={(e) => setPropertyType(e.target.value)}
         />
+
         <input
           placeholder="Number of Bathrooms"
           type="number"
           value={bathrooms}
           onChange={(e) => setBathrooms(e.target.value)}
         />
+
         <input
           placeholder="Number of Bedrooms"
           type="number"
