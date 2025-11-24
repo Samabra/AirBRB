@@ -5,6 +5,11 @@ import { useNavigate } from 'react-router-dom';
 export default function HostedListings({ token }) {
   const [listings, setListings] = useState([]);
   const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [publishingId, setPublishingId] = useState(null);
+  const [availabilityInput, setAvailabilityInput] = useState('');
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -19,8 +24,6 @@ export default function HostedListings({ token }) {
 
   const handleDelete = (id) => {
     if (!token) return;
-
-    if (!window.confirm('Are you sure you want to delete this listing?')) return;
 
     apiRequest(`/listings/${id}`, 'DELETE', null, token)
       .then(() => {
@@ -49,12 +52,28 @@ export default function HostedListings({ token }) {
         alert('Failed to publish: ' + err.message);
       });
   };
+
+  const handleUnpublish = (id) => {
+    if (!token) return;
   
+    setError('');
+    setMessage('');
+  
+    apiRequest(`/listings/unpublish/${id}`, 'PUT', {}, token)
+      .then(() => {
+        setListings(prev =>
+          prev.map(l => l.id === id ? { ...l, published: false } : l)
+        );
+        setMessage('Listing removed from public view.');
+      })
+      .catch((err) => setError(err.message));
+  };  
 
   return (
     <div>
       <h2>My Hosted Listings</h2>
       {error && <p style={{ color: 'red' }}>{error}</p>}
+      {message && <p style={{ color: 'green' }}>{message}</p>}
 
       <button onClick={() => navigate('/hosted/create')}>Create New Listing</button>
 
@@ -92,8 +111,26 @@ export default function HostedListings({ token }) {
               <p>Price: ${listing.price} / night</p>
 
               <button onClick={() => navigate(`/hosted/edit/${listing.id}`)}>Edit</button>
-              <button onClick={() => handleDelete(listing.id)}>Delete</button>
-              <button onClick={() => handlePublish(listing.id)}>Go Live</button>
+              <button onClick={() => setConfirmDeleteId(listing.id)}>
+                Delete
+              </button>
+              {confirmDeleteId === listing.id && (
+                <div style={{ border: '1px solid red', padding: 10, marginTop: 10 }}>
+                  <p>Are you sure you want to delete this listing?</p>
+                  <button onClick={() => handleDelete(listing.id)}>Yes, delete</button>
+                  <button onClick={() => setConfirmDeleteId(null)}>Cancel</button>
+                </div>
+              )}
+
+              {listing.published ? (
+                <button onClick={() => handleUnpublish(listing.id)}>
+                  Remove (Unpublish)
+                </button>
+              ) : (
+                <button onClick={() => setPublishingId(listing.id)}>
+                  Go Live
+                </button>
+              )}
             </div>
           ))}
         </div>
