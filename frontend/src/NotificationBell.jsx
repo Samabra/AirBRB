@@ -155,5 +155,72 @@ export default function NotificationBell({ token, email }) {
 
   if (!token || !email) return null;
 
-  
+  return (
+    <div className={styles.wrapper}>
+      <button
+        className={styles.bellButton}
+        onClick={toggleOpen}
+        aria-label="Notifications"
+      >
+        🔔
+        {unreadCount > 0 && <span className={styles.badge}>{unreadCount}</span>}
+      </button>
+
+      {open && (
+        <div
+          className={styles.panel}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className={styles.panelHeader}>
+            <strong>Notifications</strong>
+
+            <div style={{ display: "flex", gap: "8px" }}>
+              {/* CLEAR button */}
+              <button
+                className={styles.clearBtn}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setNotifs([]);
+                  markAllSeen();
+                }}
+              >
+                Clear
+              </button>
+
+              {/* CLOSE button */}
+              <button
+                className={styles.clearBtn}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setOpen(false);
+                }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+
+          {error && <div className={styles.error}>{error}</div>}
+
+          {notifs.length === 0 ? (
+            <div className={styles.empty}>No notifications yet.</div>
+          ) : (
+            <ul className={styles.list}>
+              {notifs.map((n) => (
+                <li key={n.id} className={styles.item}>
+                  <div className={styles.itemType}>
+                    {n.type === "host" ? "Host" : "Guest"}
+                  </div>
+                  <div>{n.text}</div>
+                  <div className={styles.time}>
+                    {new Date(n.ts).toLocaleTimeString()}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
