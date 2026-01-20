@@ -1,3 +1,4 @@
+// Input error definition
 export class InputError extends Error {
   constructor (message) {
     super(message);
@@ -5,6 +6,7 @@ export class InputError extends Error {
   }
 }
 
+// Defining the access error
 export class AccessError extends Error {
   constructor (message) {
     super(message);

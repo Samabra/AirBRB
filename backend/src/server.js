@@ -61,7 +61,7 @@ const catchErrors = (fn) => async (req, res) => {
 
 /***************************************************************
                        User Auth Functions
-***************************************************************/
+****************************************************************/
 
 const authed = (fn) => async (req, res) => {
   const email = getEmailFromAuthorization(req.header('Authorization'));

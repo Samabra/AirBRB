@@ -118,7 +118,7 @@ describe('Test the root path', () => {
 
   /***************************************************************
                        Auth Tests
-  ***************************************************************/
+  ****************************************************************/
   describe('Sign Up and Log In', () => {
     test('Registration of initial user', async () => {
       const body = await postTry('/user/auth/register', 200, {
